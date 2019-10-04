@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+ <head>
+   <meta charset="utf-8">
+   <title>Práctica3 Pamela</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <style>
+     body {
+       font-family: sans-serif
+     }
+   </style>
+   <script src="/__/firebase/6.0.2/firebase-app.js"></script>
+   <script src="/__/firebase/6.0.2/firebase-functions.js"></script>
+   <script src="/__/firebase/init.js"></script>
+ </head>
+ <body>
+   <h1>Práctica3 Pamela</h1>
+   <form name="vista">
+      <p><output name="respuesta"></output></p> 
+    <p>
+        Tu nombre
+        <input type="text" name="nombre" required placeholder="Nombre"
+          >
+     </p>
+     <p>
+       Nombre de pelicula favorita
+       <input type="text" name="pelicula" required placeholder="pelicula"
+         >
+     </p>
+    
+     <p>
+        Nombre de cancion favorita
+        <input type="text" name="cancion" required placeholder="canción"
+>
+          </p><p>
+       <button type="submit">Aceptar (Hilos)</button>
+       <button type="button" name="saludaHttp">Aceptar (Http)</button>
+     </p>
+   </form>
+   <script>
+     "use strict";
+     const hilo = new Worker("wwSaludo.js");
+     document.vista.addEventListener("submit", saludaHilo);
+     document.vista.saludaHttp.addEventListener("click", saludaHttp);
+     hilo.addEventListener("message", evt => muestraRespuesta(evt.data));
+     function muestraRespuesta(respuesta) {
+       document.vista.respuesta.value = respuesta;
+     }
+     function saludaHilo(evt) {
+       evt.preventDefault();
+       const modelo = leeModelo();
+       hilo.postMessage(modelo);
+     }
+     async function saludaHttp() {
+       try {
+         const modelo = leeModelo();
+         const respuestaHttp = await fetch(
+           "saludo?nombre=" + encodeURIComponent(modelo.nombre)
+           + "&pelicula=" + encodeURIComponent(modelo.pelicula)
+           + "&cancion=" + encodeURIComponent(modelo.cancion));
+         if (respuestaHttp.ok) {
+           const respuestaTexto = await respuestaHttp.text();
+           muestraRespuesta(respuestaTexto);
+         } else {
+           throw new Error(respuestaHttp.statusText);
+         }
+       } catch (e) {
+         muestraRespuesta(e.message);
+       }
+     }
+     function leeModelo() {
+       return {
+        nombre: document.vista.nombre.value,
+        pelicula: document.vista.pelicula.value,
+        cancion: document.vista.cancion.value.trim()
+       };
+     }
+   </script>
+   <footer>
+     <small>Copyright &copy;2019 BUSTOS MARTINEZ PAMELA GUADALUPE</small>
+   </footer>
+ </body>
+</html>
